@@ -47,6 +47,47 @@ class Scanner {
             case '+': $this->addToken(TokenType::PLUS); break;
             case ';': $this->addToken(TokenType::SEMICOLON); break;
             case '*': $this->addToken(TokenType::STAR); break;
+            case '!':
+                $type = $this->match('=') ? TokenType::BANG_EQUAL : TokenType::BANG;
+                $this->addToken($type);
+                break;
+            case '=':
+                $type = $this->match('=') ? TokenType::EQUAL_EQUAL : TokenType::EQUAL;
+                $this->addToken($type);
+                break;
+            case '<':
+                $type = $this->match('=') ? TokenType::LESS_EQUAL : TokenType::LESS;
+                $this->addToken($type);
+                break;
+            case '>':
+                $type = $this->match('=') ? TokenType::GREATER_EQUAL : TokenType::GREATER;
+                $this->addToken($type);
+                break;
+            case '/':
+                if($this->match('/')) {
+                    while($this->peek() != "\n" && !$this->isAtEnd()) $this->advance();
+                } else {
+                    $this->addToken(TokenType::SLASH);
+                }
+                break;
+            case ' ':
+            case "\r":
+            case "\t":
+                // ignore whitespace
+                break;
+            case "\n":
+                $this->line++;
+                break;
+            case '"':
+                $this->string();
+                break;
+            default:
+                if(ctype_digit($c)) {
+                    $this->number();
+                } else{
+                    Lox::error($this->line, "Unrecognized character.");
+                }
+                break;
         }
     }
 
@@ -57,12 +98,68 @@ class Scanner {
         return $c;
     }
 
+    private function match(string $expected) : bool
+    {
+        if($this->isAtEnd()) return false;
+        if($this->source[$this->current] != $expected) return false;
+
+        $this->current++;
+        return true;
+    }
+
+    private function peek() : string
+    {
+        if($this->isAtEnd()) return "\0";
+        return $this->source[$this->current];
+    }
+
+    private function peekNext() : string
+    {
+        if($this->current + 1 >= strlen($this->source)) return "\0";
+        return $this->source[$this->current + 1];
+    }
+
+    private function string() : void
+    {
+        while($this->peek() != '"' && !$this->isAtEnd()) {
+            if($this->peek() == "\n") $this->line++;
+            $this->advance();
+        }
+
+        if($this->isAtEnd()) {
+            Lox::error($this->line, 'Unterminated string.');
+            return;
+        }
+
+        // Get the closing "
+        $this->advance();
+        $value = substr($this->source, $this->start + 1, $this->current - $this->start - 2);
+        $literal = new Literal(LiteralType::STRING, $value);
+        $this->addTokenLit(TokenType::STRING, $literal);
+    }
+
+    private function number() : void
+    {
+        while(ctype_digit($this->peek())) $this->advance();
+
+        // see if we have a fractional part
+        if($this->peek() == '.' && ctype_digit($this->peekNext())) {
+            $this->advance();
+
+            while(ctype_digit($this->peek())) $this->advance();
+        }
+
+        $value = substr($this->source, $this->start, $this->current - $this->start);
+        $literal = new Literal(LiteralType::NUMBER, floatval($value));
+        $this->addTokenLit(TokenType::NUMBER, $literal);
+    }
+
     private function addToken(TokenType $type) : void
     {
        $this->addTokenLit($type, null);
     }
 
-    private function addTokenLit(TokenType $type, object|null $literal) : void
+    private function addTokenLit(TokenType $type, Literal|null $literal) : void
     {
         $text = substr($this->source, $this->start, $this->current - $this->start);
         $this->tokens []= new Token($type, $text, $literal, $this->line);
