@@ -7,9 +7,29 @@ use IntlChar;
 class Scanner {
     private string $source;
     private array $tokens;
+
     private int $start = 0;
     private int $current = 0;
     private int $line = 1;
+
+    const KEYWORDS = [
+        "and" => TokenType::AND,
+        "class" => TokenType::CLASS_TOK,
+        "else" => TokenType::ELSE,
+        "false" => TokenType::FALSE,
+        "for" => TokenType::FOR,
+        "fun" => TokenType::FUN,
+        "if" => TokenType::IF,
+        "nil" => TokenType::NIL,
+        "or" => TokenType::OR,
+        "print" => TokenType::PRINT,
+        "return" => TokenType::RETURN,
+        "super" => TokenType::SUPER,
+        "this" => TokenType::THIS,
+        "true" => TokenType::TRUE,
+        "var" => TokenType::VAR,
+        "while" => TokenType::WHILE
+    ];
 
     function __construct(string $source)
     {
@@ -84,7 +104,9 @@ class Scanner {
             default:
                 if(ctype_digit($c)) {
                     $this->number();
-                } else{
+                } else if($this->isAlpha($c)) {
+                    $this->identifier();
+                } else {
                     Lox::error($this->line, "Unrecognized character.");
                 }
                 break;
@@ -152,6 +174,26 @@ class Scanner {
         $value = substr($this->source, $this->start, $this->current - $this->start);
         $literal = new Literal(LiteralType::NUMBER, floatval($value));
         $this->addTokenLit(TokenType::NUMBER, $literal);
+    }
+
+    private function identifier() : void
+    {
+        while($this->isAlphaNumeric($this->peek())) $this->advance();
+
+        $text = substr($this->source, $this->start, $this->current - $this->start);
+        $type = isset(Scanner::KEYWORDS[$text]) ? Scanner::KEYWORDS[$text] : TokenType::IDENTIFIER;
+
+        $this->addToken($type);
+    }
+
+    private function isAlpha(string $c) : bool
+    {
+        return ctype_alpha($c) || $c == '_';
+    }
+
+    private function isAlphaNumeric(string $c) : bool
+    {
+        return ctype_alnum($c) || $c == '_';
     }
 
     private function addToken(TokenType $type) : void
