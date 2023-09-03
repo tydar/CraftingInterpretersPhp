@@ -5,8 +5,8 @@ namespace Lox;
 use Lox\Scanner;
 
 class Lox {
-
     static bool $hadError = false;
+    static bool $hadRuntimeError = false;
 
     public static function main(array $args) : void
     {
@@ -26,6 +26,10 @@ class Lox {
         Lox::run($fileContent);
         if(Lox::$hadError) {
             exit(65);
+        }
+
+        if(Lox::$hadRuntimeError) {
+            exit(70);
         }
     }
 
@@ -48,16 +52,23 @@ class Lox {
         $parser = new Parser($tokens);
         $expr = $parser->parse();
 
-        if(Lox::$hadError) return;
+        $interpreter = new Interpreter();
 
-        $printer = new AstPrinter();
-        $output = $printer->print($expr);
-        echo $output . PHP_EOL;
+        if(Lox::$hadError) return;
+        
+        $interpreter->interpret($expr);
     }
 
     static function error(int $line, string $message) : void
     {
         Lox::report($line, "", $message);
+    }
+
+    static function runtimeError(LoxRuntimeError $error): void
+    {
+        $line = $error->token->line;
+        fwrite(STDERR, $error->getMessage() . "\n[line $line]\n");
+        Lox::$hadRuntimeError = true;
     }
 
     private static function report(int $line, string $where, string $message) : void
