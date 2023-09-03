@@ -26,6 +26,6 @@ class Literal {
     public function __toString() : string
     {
         $type = $this->type->type();
-        return "$type ($this->value)";
+        return "$this->value";
     }
 }
