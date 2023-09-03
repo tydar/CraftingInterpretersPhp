@@ -4,4 +4,6 @@ namespace Lox;
 
 use Exception;
 
-class LoxParseError extends Exception {}
+class LoxParseError extends Exception
+{
+}

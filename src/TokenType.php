@@ -53,7 +53,8 @@ enum TokenType
     case EOF;
 
     // PHP enums are not __toStringable...
-    public function type() : string {
+    public function type(): string
+    {
         return match($this) {
             // Single-character tokens
             TokenType::LEFT_PAREN => "LEFT_PAREN",

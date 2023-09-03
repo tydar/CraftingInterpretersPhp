@@ -1,2 +1,4 @@
 vendor
 scratch
+tools
+.php-cs-fixer.cache

@@ -4,8 +4,9 @@ namespace Lox;
 
 use Exception;
 
-class Literal {
-    public LiteralType $type; 
+class Literal
+{
+    public LiteralType $type;
     public string|float|bool|null $value;
 
     public function __construct(LiteralType $type, string|float|bool|null $value)
@@ -22,7 +23,7 @@ class Literal {
         if($type == LiteralType::BOOL && gettype($value) != 'boolean') {
             throw new Exception("Internal lexer error: mismatched literal type and value");
         }
-        
+
         if($type == LiteralType::NIL && !is_null($value)) {
             throw new Exception("Internal lexer error: mismatched literal type and value");
         }
@@ -31,7 +32,7 @@ class Literal {
         $this->value = $value;
     }
 
-    public function __toString() : string
+    public function __toString(): string
     {
         if($this->type == LiteralType::BOOL) {
             return $this->value ? 'true' : 'false';

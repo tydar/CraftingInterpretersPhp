@@ -2,14 +2,15 @@
 
 namespace Lox;
 
-class Interpreter implements ExprVisitor {
+class Interpreter implements ExprVisitor
+{
     public function interpret(Expr $expression): void
     {
         try {
             $value = $this->evaluate($expression);
             $output = $this->stringify($value) . PHP_EOL;
             echo $output;
-        } catch(LoxRuntimeError $e)  {
+        } catch(LoxRuntimeError $e) {
             Lox::runtimeError($e);
         }
     }
@@ -74,7 +75,7 @@ class Interpreter implements ExprVisitor {
                 throw new LoxRuntimeError($expr->operator, "Operands must be two numbers or two strings. " . gettype($left) . " " . gettype($right));
             case TokenType::SLASH:
                 $this->checkNumberOperands($expr->operator, $left, $right);
-                return (double)$left / (double)$right;
+                return (float)$left / (float)$right;
             case TokenType::STAR:
                 $this->checkNumberOperands($expr->operator, $left, $right);
                 return $left * $right;
@@ -90,8 +91,12 @@ class Interpreter implements ExprVisitor {
 
     private function isTruthy(mixed $val): bool
     {
-        if(is_null($val)) return false;
-        if(gettype($val) == 'boolean') return (bool)$val;
+        if(is_null($val)) {
+            return false;
+        }
+        if(gettype($val) == 'boolean') {
+            return (bool)$val;
+        }
         return true;
     }
 
@@ -100,21 +105,27 @@ class Interpreter implements ExprVisitor {
         return $a === $b;
     }
 
-    private function checkNumberOperand(Token $operator, mixed $operand) : void
+    private function checkNumberOperand(Token $operator, mixed $operand): void
     {
-        if(gettype($operand) == 'double') return;
+        if(gettype($operand) == 'double') {
+            return;
+        }
         throw new LoxRuntimeError($operator, "Operand must be a number.");
     }
 
-    private function checkNumberOperands(Token $operator, mixed $left, mixed $right) : void
+    private function checkNumberOperands(Token $operator, mixed $left, mixed $right): void
     {
-        if(gettype($left) == 'double' && gettype($right) == 'double') return;
+        if(gettype($left) == 'double' && gettype($right) == 'double') {
+            return;
+        }
         throw new LoxRuntimeError($operator, "Operands must be numbers.");
     }
 
-    private function stringify(mixed $value) : string
+    private function stringify(mixed $value): string
     {
-        if(is_null($value)) return 'nil';
+        if(is_null($value)) {
+            return 'nil';
+        }
 
         if(gettype($value) == 'double') {
             $text = strval($value);

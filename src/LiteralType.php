@@ -9,8 +9,8 @@ enum LiteralType
     case NUMBER;
     case BOOL;
     case NIL;
-    
-    public function type() : string
+
+    public function type(): string
     {
         return match($this) {
             LiteralType::STRING => "LITERAL_STRING",
