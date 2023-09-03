@@ -45,9 +45,14 @@ class Lox {
         $scanner = new Scanner($source);
         $tokens = $scanner->scanTokens();
 
-        foreach($tokens as $token) {
-            echo $token . PHP_EOL;
-        }
+        $parser = new Parser($tokens);
+        $expr = $parser->parse();
+
+        if(Lox::$hadError) return;
+
+        $printer = new AstPrinter();
+        $output = $printer->print($expr);
+        echo $output . PHP_EOL;
     }
 
     static function error(int $line, string $message) : void
@@ -57,7 +62,16 @@ class Lox {
 
     private static function report(int $line, string $where, string $message) : void
     {
-        fwrite(STDERR, "[line $line] Error $where : $message");
+        fwrite(STDERR, "[line $line] Error $where : $message\n");
         Lox::$hadError = true;
+    }
+
+    static function errorAtToken(Token $token, string $message) : void
+    {
+        if($token->type == TokenType::EOF) {
+            Lox::report($token->line, " at end", $message);
+        } else {
+            Lox::report($token->line, " at '" . $token->lexeme . "'", $message);
+        }
     }
 }
